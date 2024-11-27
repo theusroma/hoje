@@ -1,0 +1,42 @@
+#include <stdio.h>
+
+int main() {
+    // Abre o arquivo "dados.txt" no modo de escrita ("w")
+    FILE *arquivo = fopen("dados.txt", "w");
+
+    // Verifica se o arquivo foi aberto corretamente
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo\n");
+        return 1;  // Sai do programa com erro (1)
+    }
+
+    // Variáveis para armazenar os dados que o usuário vai fornecer
+    int numero;
+    double pi;
+    char texto[100];
+
+    // Solicita e lê os dados do usuário
+    printf("Digite um número inteiro: ");
+    scanf("%d", &numero);  // Lê o número inteiro
+
+    printf("Digite o valor de PI: ");
+    scanf("%lf", &pi);     // Lê um número decimal (double)
+
+    printf("Digite um texto: ");
+    getchar(); // Para consumir o '\n' que ficou na entrada após o último scanf
+    fgets(texto, sizeof(texto), stdin);  // Lê uma linha de texto
+
+    // Grava os dados no arquivo
+    fprintf(arquivo, "Número: %d\n", numero);  // Escreve o número inteiro
+    fprintf(arquivo, "Valor de PI: %lf\n", pi); // Escreve o valor de PI
+    fprintf(arquivo, "Texto: %s\n", texto);     // Escreve o texto
+
+    // Fecha o arquivo e verifica se foi fechado corretamente
+    if (fclose(arquivo) == 0) {
+        printf("\nDados gravados no arquivo com sucesso.\n");
+        return 0;  // Encerra o programa com sucesso
+    } else {
+        printf("Erro ao fechar o arquivo\n");
+        return 1;  // Sai do programa com erro
+    }
+}
