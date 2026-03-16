@@ -1,0 +1,224 @@
+Aplicativo Cronometro
+
+Alternativa 1 ecossistema .NET, especialmente em ambiente corporativo):
+      
+    • Back-end: C# + ASP.NET Core 
+    • Desktop: C# + WPF/WinUI/ (Windows) ou MAUI 
+    • Motivos: 
+        ◦ Stack muito utilizado em sistemas corporativos, com boa integraÃ§Ã£o com Active Directory, Azure AD. 
+        ◦ ASP.NET Core fornece ferramentas maduras para autenticaÃ§Ã£o/autorizaÃ§Ã£o e APIs REST. 
+        ◦ Desktop nativo em C# facilita ainda mais recursos como Always-on-Top em Windows. 
+Se vocÃª estÃ¡ iniciando carreira e quer algo mais padrÃ£o de mercado com bom material moderno, o combo TypeScript + Node.js + React Ã© uma escolha sÃ³lida.
+
+
+
+Alternativa 2 (stack unificado em TypeScript):
+      
+    • Back-end: TypeScript + Node.js 
+    • Front-end/desktop: TypeScript + React + Electron ou Tauri 
+    • Motivos: 
+        ◦ TypeScript proporciona tipagem estatistica e reduz erros de lógical (como calculo de tempo). 
+        ◦ Permite reutilizar modelos e tipos entre front-end e back-end (DTOs de Tarefa, UsuÃ¡rio, Log de Tempo). 
+        ◦ Ecossistema maduro para aplicações em tempo-real (WebSocket, Socket.IO) se vocÃª quiser status em tempo quase real para gerentes. 
+        ◦ Electron/Tauri permitem criar app desktop (Windows, Linux, macOS) usando a mesma base React/TypeScript.
+
+
+
+Alternativa 3 (UI desktop leve, sem instalar pacotes): C# .NET Framework (WinForms)
+
+Por quê: Em máquinas Windows corporativas, o .NET Framework já está presente. Você pode gerar um .exe standalone (sem instalar MSI), UI mais polida, e log em CSV/JSON.
+Prós:
+
+UI melhor e responsiva.
+Acesso nativo a SQL Server via System.Data.SqlClient.
+
+
+Contras:
+
+Build inicial requer Visual Studio (ou similar).
+Ler .xlsx diretamente sem lib extra é chato; solução: usar CSV exportado ou Excel Interop (requer Excel instalado e abre processo).
+
+
+Quando usar: Se você quer um aplicativo mais robusto e a TI deixa você distribuir um .exe assinado internamente.
+ 
+
+Alternativa 4 (se Python já estiver permitido): Python + Tkinter (sem libs externas)
+
+Por quê: Python normalmente precisa de libs para Excel (openpyxl, pandas), que podem estar bloqueadas. Sem essas libs, limite-se a ler CSV exportado do Excel e usar Tkinter para UI.
+Prós:
+
+Desenvolvimento rápido.
+UI suficiente.
+
+
+Contras:
+
+Sem openpyxl/pandas, você perde leitura nativa de .xlsx.
+
+
+Quando usar: Se TI já provisionou Python, mas bloqueia pip.
+
+
+
+Autenticação
+
+-Precisa de Autenticação? Como realizar esse processo?
+
+
+Banco de dados
+    • Banco relacional com suporte forte: 
+        ◦ PostgreSQL (recomendado) ou 
+        ◦ SQL Server / MySQL/MariaDB.
+ 
+
+
+Segue o texto puro, com seus esquemas corrigidos, normalizados e melhorados, pronto para colocar no relatÃ³rio.
+Formato simples, direto e sem comentÃ¡rios extras.
+
+Esquema de Banco de Dados 
+Tabela: teams (equipes)
+teams (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+)
+Tabela: users (usuarios)
+users (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
+    role TEXT CHECK (role IN ('USER','MANAGER','ADMIN')),
+    team_id UUID REFERENCES teams(id),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+)
+Tabela: tasks (tarefas)
+tasks (
+    id UUID PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    cod_uor INT,
+    tipo_task_id INT,
+    etapa_id INT,
+    team_id UUID REFERENCES teams(id),
+    status TEXT CHECK (status IN 
+        ('NOT_STARTED','IN_PROGRESS','PAUSED','COMPLETED','CANCELLED')
+    ),
+    created_by_user_id UUID REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+)
+Tabela: task_user_assignments (tarefa ↔ usaurio)
+task_user_assignments (
+    id UUID PRIMARY KEY,
+    task_id UUID REFERENCES tasks(id),
+    user_id UUID REFERENCES users(id),
+    assigned_at TIMESTAMP NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
+)
+Tabela: tipo_task (pool de tipos de tarefas)
+tipo_task (
+    id INT PRIMARY KEY,
+    etapa_id INT NOT NULL
+)
+Tabela: timer_events (logs de ações do cronometro)
+timer_events (
+    id UUID PRIMARY KEY,
+    task_id UUID REFERENCES tasks(id),
+    user_id UUID REFERENCES users(id),
+    session_id UUID,
+    event_type TEXT CHECK (event_type IN 
+        ('START','PAUSE','RESUME','STOP','COMPLETE')
+    ),
+    occurred_at TIMESTAMP NOT NULL,
+    metadata JSONB
+)
+Tabela: task_time_summary (estado de tempo por usuario)
+task_time_summary (
+    id UUID PRIMARY KEY,
+    task_id UUID REFERENCES tasks(id),
+    user_id UUID REFERENCES users(id),
+    accumulated_seconds BIGINT DEFAULT 0,
+    current_state TEXT CHECK (current_state IN 
+        ('IDLE','RUNNING','PAUSED','COMPLETED')
+    ),
+    last_event_id UUID REFERENCES timer_events(id),
+    last_event_at TIMESTAMP
+)
+
+STACK:
+Desktop (operador)
+        ◦ Stack JS/TS: 
+            ▪ Electron ou Tauri 
+            ▪ React + TypeScript 
+        ◦ ou Stack .NET: 
+            ▪ WPF/WinUI/MAUI 
+            ▪ C# + MVVM 
+    • Backend
+        ◦ NestJS (Node + TS) + PostgreSQL
+ou 
+        ◦ ASP.NET Core + EF Core + PostgreSQL/SQL Server 
+    • Gestão Web (gerente/admin)
+        ◦ React + TypeScript (SPA) 
+        ◦ Mesma API REST 
+      
+
+Integridade dos dados de tempo
+    • Fonte de verdade de tempo:
+        ◦ Usar sempre hora do servidor (ou do banco) para occurred_at: 
+            ▪ Ex.: em PostgreSQL, uso de NOW() / CURRENT_TIMESTAMP no servidor. 
+        ◦ NÃ£o confiar em clocks do cliente (desktop/web). 
+    • TransaÃ§Ãµes atÃ´micas:
+        ◦ Ao registrar um evento de cronÃ´metro: 
+            ▪ Inserir em timer_events. 
+            ▪ Atualizar task_time_summary. 
+            ▪ Atualizar tasks.status se necessÃ¡rio. 
+        ◦ Fazer tudo isso dentro de uma transaÃ§Ã£o no banco, para evitar estados incoerentes. 
+    • Constraints no banco:
+        ◦ Foreign keys (task_id, user_id, team_id) com integridade referencial. 
+        ◦ Se a regra for â€œum timer ativo por usuÃ¡rio e tarefaâ€: 
+            ▪ Constraint lÃ³gica: task_time_summary.current_state nÃ£o pode ter dois registros com RUNNING para o mesmo task_id + user_id. 
+            ▪ Pode ser reforÃ§ado com checagens e, se necessÃ¡rio, locks de linha durante as operaÃ§Ãµes. 
+    • Enum restritos:
+        ◦ Usar tipos enum no banco para event_type, status, role para evitar valores invÃ¡lidos. 
+Registro confiÃ¡vel das aÃ§Ãµes
+    • Logs imutÃ¡veis:
+        ◦ timer_events deve ser append-only: nunca atualizar ou deletar registros, exceto em casos de correÃ§Ã£o auditada. 
+        ◦ Em caso de correÃ§Ã£o, registrar novo evento de tipo ADJUST ou similar, em vez de editar o passado. 
+    • Auditoria:
+        ◦ Em entidades importantes (tasks, task_time_summary), guardar: 
+            ▪ created_by_user_id 
+            ▪ updated_by_user_id 
+        ◦ Logar operaÃ§Ãµes administrativas (ex.: alteraÃ§Ã£o de atribuiÃ§Ã£o da tarefa) em tabela de auditoria especÃ­fica ou em log externo. 
+    • IdempotÃªncia:
+        ◦ Projetar endpoints de timer para evitar duplicidade de eventos por problema de rede/reenvio. 
+        ◦ Exemplo: enviar um client_action_id (UUID) e ter uma chave Ãºnica nessa coluna para nÃ£o processar o mesmo comando duas vezes. 
+Controle de concorrÃªncia
+    • Por usuÃ¡rio/tarefa:
+        ◦ Ao chamar start, pause, resume, stop, fazer checagens de estado na transaÃ§Ã£o: 
+            ▪ Ex.: sÃ³ permitir pause se o estado atual for RUNNING. 
+        ◦ Usar optimistic locking (ex.: coluna version ou row_version) em task_time_summary para detectar atualizaÃ§Ãµes concorrentes. 
+    • Por tarefa/equipe (se nÃ£o permitir mÃºltiplos usuÃ¡rios ao mesmo tempo):
+        ◦ Na lÃ³gica de start, verificar se jÃ¡ existe algum task_time_summary com current_state = RUNNING para aquela tarefa. 
+        ◦ Garantir essa regra no serviÃ§o e, se necessÃ¡rio, via bloqueio de linha na tabela de resumo. 
+Escalabilidade mÃ­nima
+    • Backend stateless:
+        ◦ NÃ£o manter estado de cronÃ´metros em memÃ³ria de um Ãºnico servidor. 
+        ◦ Toda a verdade de estado deve estar no banco (timer_events/task_time_summary). 
+        ◦ Isso permite escalar horizontalmente o backend (vÃ¡rias instÃ¢ncias atrÃ¡s de um load balancer). 
+    • Pool de conexÃµes:
+        ◦ Configurar pool de conexÃµes no ORM ou driver para uso eficiente do banco de dados. 
+    • Ãndices adequados:
+        ◦ Ãndices em campos de filtro frequente: 
+            ▪ timer_events.task_id, timer_events.user_id, timer_events.occurred_at 
+            ▪ tasks.team_id, tasks.status 
+            ▪ task_time_summary.task_id, task_time_summary.user_id 
+        ◦ Isso Ã© importante para relatÃ³rios e telas de gerente. 
+    • PaginaÃ§Ã£o em listas:
+        ◦ Endpoints como GET /tasks, GET /reports/... devem suportar page/limit para evitar respostas muito grandes. 
+    • Monitoramento e logs:
+        ◦ Logging estruturado no backend (ex.: JSON) para poder auditar problemas de tempo. 
+        ◦ MÃ©tricas bÃ¡sicas: nÃºmero de eventos de timer por minuto, erros em transaÃ§Ãµes, etc.
